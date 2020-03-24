@@ -20,6 +20,5 @@ cursor.execute('''UPDATE weather_data_temperature set temperature = 30 where ID 
 print("Updated successfully")
 cursor.execute('''DELETE from weather_data_temperature where ID = 5 ''')
 print("Deleted successfully")
-print(cursor.execute("SELECT * FROM weather_data_temperature WHERE ID = 1"))
 db.commit()
 db.close()
