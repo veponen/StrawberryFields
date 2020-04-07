@@ -4,4 +4,3 @@ This is a study project, purpose of which is to learn practices currently being 
 This is used over several cources.
 
 
-new line is added in group4 branch
