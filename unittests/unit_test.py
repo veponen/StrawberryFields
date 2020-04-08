@@ -2,11 +2,6 @@ import unittest
 import sqlite3 as sql
 import re 
 
-Cu_re=sql.connect('CustomerReservation.db').cursor()
-customer_table=Cu_re.execute('''select * from Customers''').fetchall()
-reservation_table=Cu_re.execute('''select * from Reservation''').fetchall()
-strawberrytype_table=Cu_re.execute('''select * from Strawberrytype''').fetchall()
-
 def check_date(date):
     pattern = re.compile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
     if pattern.match(date):
@@ -64,4 +59,9 @@ class TestDatabase(unittest.TestCase):
         self.assertTrue(all(typ_res_key))
 
 if __name__=='__main__':
+    Cu_re=sql.connect('testDataGeneration\CustomerReservation.db').cursor()
+    customer_table=Cu_re.execute('''select * from Customers''').fetchall()
+    reservation_table=Cu_re.execute('''select * from Reservation''').fetchall()
+    strawberrytype_table=Cu_re.execute('''select * from Strawberrytype''').fetchall()
+
     unittest.main()
