@@ -1,15 +1,17 @@
-import sqlite3
-conn = sqlite3.connect('generator.db')
+import datetime
+import random
+import mysql.connector
+import math
+import os 
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-c = conn.cursor()
+start_date = datetime.datetime(2020,7,1)
+end_date = datetime.datetime(2020,8,1)
+berryCorps={}
+max_corps=1000
+min_corps=0
 
-# Create table
-c.execute('''CREATE TABLE dates
-             (Nr crt, Random)''')
 
-<<<<<<< refs/remotes/origin/group2
-conn.commit()
-=======
 def strawberryCorpsGeneration(): #main we call this from the main.py
     days=count_days(start_date,end_date)
     harvest=generate_rnd_nums_ordered(days)
@@ -102,4 +104,3 @@ def count_days(start_date, end_date):
     
 
 print (strawberryCorpsGeneration())
->>>>>>> local
