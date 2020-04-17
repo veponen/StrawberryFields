@@ -11,7 +11,6 @@ berryCorps={}
 max_corps=1000
 min_corps=0
 
-
 def strawberryCorpsGeneration(): #main we call this from the main.py
     days=count_days(start_date,end_date)
     harvest=generate_rnd_nums_ordered(days)
