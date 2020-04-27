@@ -5,18 +5,23 @@ from unnecessary_math import multiply
 from cropsPotential import predict_day
 import sys
 import os
-sys.path.append(os.getcwd() + '/..')
-# import parent.file1
-# from perDayCropsPrediction.strawberry import strawberryCorpsGeneration
-from config import rowHarvest
-# import unnecessary_math
- 
+# some examples: 
+# sys.path.append(os.getcwd() + '/..')
+# c:\Users\veper\Documents\SOFTAUS\StrawberryFields
+#   sys.path.insert(1, os.getcwd() + '/testDataGeneration/')
+# https://stackoverflow.com/questions/1896918/running-unittest-with-typical-test-directory-structure
+# first import package (directory) then import module (file)
+import testDataGeneration #package import
+from testDataGeneration import Straberry # module import
+
 class TestUM(unittest.TestCase):
  
     def setUp(self):
         pass
  
     def test_numbers_3_4(self):
+        #unnecessary_math.multiply(1,3)
+        Straberry.cropsGenerator()
         self.assertEqual( multiply(3,4), 12)
  
     def test_strings_a_3(self):
@@ -27,6 +32,8 @@ class TestUM(unittest.TestCase):
 
     # mock patch, mock 
     def test_cropspotential(self):
+        # c:\Users\veper\Documents\SOFTAUS\StrawberryFields
+        print(os.getcwd())
         seasonStartDay =  datetime.datetime.now()
         currentHarvestingDay =  datetime.datetime.now()
         currentHarvestingKg =  20
@@ -36,4 +43,5 @@ class TestUM(unittest.TestCase):
        
 
 if __name__ == '__main__':
+    print(os.getcwd())
     unittest.main()
