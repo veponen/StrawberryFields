@@ -18,6 +18,18 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(answer2, 6)
 
     def test_sum_mocking(self):
+        mock2 = Mock()
+        mock2.sleeping10second()
+        self.calc.sleeping10second = mock2
+        #running the functianlity to be tested
+        answer3 = self.calc.sum(2, 4)
+        #assertions of the proper functionality happening
+        self.calc.sleeping10second.assert_called_once()
+        self.assertEqual(answer3,6)
+
+        # below for safekeeping
+        answer2 = self.calc.sum(2, 4)
+        self.assertEqual(answer2,6)
         mock = Mock()
         mock.sum()
         self.calc.sum = mock
