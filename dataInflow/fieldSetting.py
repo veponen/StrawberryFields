@@ -1,8 +1,15 @@
-getTempCoefficient = lambda minTemp,maxTemp: abs((minTemp+maxTemp)/2) if minTemp+maxTemp !=0 else 1
-getRainCoefficient = lambda rain: rain/10 if (rain != 0) else 1
-getUviCoefficient = lambda uvi: uvi + 1
-getWindCoefficient = lambda wind: wind + 1
-getHumidCofficient = lambda humid: (100-humid)/100
+import datetime as dt
 
-baseVolumeOfIrrigation = 100 #(in mm)
-irrigationRunCount = 3
+def unix_to_UTC_time(time_survey):
+    time_in_string=dt.datetime.utcfromtimestamp(time_survey).strftime('%Y-%m-%d %H:%M:%S')
+    return dt.datetime.strptime(time_in_string,'%Y-%m-%d %H:%M:%S')
+
+CelciusToFahrenheit = lambda Cel: Cel*1.8 +32
+
+UviToSolarGrad = lambda uvi,time_light: uvi*0.025*time_light/1000
+
+MilimetToInch = lambda ml: ml*0.03937
+
+InchToMilimet = lambda inch: inch*25.4
+
+ms_To_mph = lambda ms: ms*2.23693629
