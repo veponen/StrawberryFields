@@ -1,42 +1,107 @@
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+import dataGenerate
 import json as js
 import urllib.request
+import datetime as dt
 import fieldSetting
+import numpy as np
+import pandas as pd
 
-def load_and_read_from_API():
-    url='https://api.openweathermap.org/data/2.5/onecall?lat=64.286670&lon=27.622125&units=metric&appid=e25afeccd6e22a2e996bed2809e43452'
-    resp=urllib.request.urlopen(url)
-    jsfile_Tornio=js.load(resp)
+class WeatherCollectedData:
+    url1='https://api.openweathermap.org/data/2.5/onecall?lat=64.286670&lon=27.622125&units=metric&appid=e25afeccd6e22a2e996bed2809e43452'
+    url2='https://api.openweathermap.org/data/2.5/forecast?lat=64.286670&lon=27.622125&units=metric&appid=e25afeccd6e22a2e996bed2809e43452'
+    def load_and_read_from_API_1(self):
+        resp_1=urllib.request.urlopen(self.url1)
+        self.jsfile_1=js.load(resp_1)
 
-    weather_info=[]
-    for each_date in jsfile_Tornio['daily']:
-        temp_max=each_date['temp']['max']
-        temp_min=each_date['temp']['min']
-        rain_info=each_date.get('rain',0)
-        uvi_index=each_date['uvi']
-        wind_speed=each_date['wind_speed']
-        humidity=each_date['humidity']
-        weather_info.append({
-            'temp_max':temp_max,
-            'temp_min':temp_min,
-            'rain_info':rain_info,
-            'uvi_index':uvi_index,
-            'wind_speed':wind_speed,
-            'humidity':humidity})
-    return weather_info
+        self.temp_rain_uv_info=[]
+        for each_date in self.jsfile_1['daily'][1:5]:
+            sunset=each_date['sunset']
+            sunrise=each_date['sunrise']
+            temp_max=each_date['temp']['max']
+            temp_min=each_date['temp']['min']
+            rain_info=each_date.get('rain',0)
+            uvi_index=each_date['uvi']
 
+            self.temp_rain_uv_info.append({
+                'sunset':sunset,
+                'sunrise':sunrise,
+                'temp_max':temp_max,
+                'temp_min':temp_min,
+                'rain_info':rain_info,
+                'uvi_index':uvi_index})
+        return self.temp_rain_uv_info
+    def load_and_read_from_API_2(self):
+        resp_2=urllib.request.urlopen(self.url2)
+        self.jsfile_2=js.load(resp_2)
+        self.date_humid_wind={}
+        for each_3_hour in self.jsfile_2['list']:
+            date=dt.datetime.strftime(fieldSetting.unix_to_UTC_time(each_3_hour['dt']),'%Y-%m-%d')
+            time=dt.datetime.strftime(fieldSetting.unix_to_UTC_time(each_3_hour['dt']),'%H:%M:%S')
+            if date not in self.date_humid_wind:
+                self.date_humid_wind[date]={time:{
+                    'humidity':each_3_hour['main']['humidity'],
+                    'wind_speed':each_3_hour['wind']['speed']
+                    }}
+            else:
+                self.date_humid_wind[date][time]={
+                    'humidity':each_3_hour['main']['humidity'],
+                    'wind_speed':each_3_hour['wind']['speed']
+                    }
+        self.humid_wind_info=[]
+        for each_date in self.date_humid_wind:
+            date_info=self.date_humid_wind[each_date]
+            if len(date_info) ==8 :
+                wind_3AM=date_info['03:00:00']['wind_speed']
+                wind_3PM=date_info['15:00:00']['wind_speed']
+                min_humid = min([date_info[each3hour]['humidity'] for each3hour in date_info])
+                self.humid_wind_info.append({
+                    'min_humid':min_humid,
+                    'wind_3AM':wind_3AM,
+                    'wind_3PM':wind_3PM
+                })
+        return self.humid_wind_info
 
-def irrigationPrediction5Days(data=load_and_read_from_API()):
-    
-    totalIrrigationVolume = 0
-    for everyWeatherPrediction in data:
-        tempCoefficient=fieldSetting.getTempCoefficient(everyWeatherPrediction['temp_max'],everyWeatherPrediction['temp_min'])
-        rainCoefficient=fieldSetting.getRainCoefficient(everyWeatherPrediction['rain_info'])
-        uviCoefficient=fieldSetting.getUviCoefficient(everyWeatherPrediction['uvi_index'])
-        windCoeffienct=fieldSetting.getWindCoefficient(everyWeatherPrediction['wind_speed'])
-        humidCoeffienct=fieldSetting.getHumidCofficient(everyWeatherPrediction['humidity'])
+class FinalWeatherData(WeatherCollectedData):   
+    def finalizeData(self):
+        self.weather_info_array=np.array([0,0,0,0,0,0,0]).reshape(-1,7)
+        for load1, load2 in zip(self.load_and_read_from_API_1(),self.load_and_read_from_API_2()):
+            sunset_time=fieldSetting.unix_to_UTC_time(load1['sunset'])
+            sunrise_time=fieldSetting.unix_to_UTC_time(load1['sunrise'])
+            amount_time_light_in_seccond=(sunset_time-sunrise_time).seconds # (sec)
+            maxTemp = fieldSetting.CelciusToFahrenheit(load1['temp_max']) # (*F)
+            minTemp = fieldSetting.CelciusToFahrenheit(load1['temp_min']) # (*F)
+            min_humid = load2['min_humid'] # humidity percetage
+            solarGrad = fieldSetting.UviToSolarGrad(load1['uvi_index'],amount_time_light_in_seccond) # (MJ/m2)
+            rain=fieldSetting.MilimetToInch(load1['rain_info']) # (inch)
+            wind_3AM=fieldSetting.ms_To_mph(load2['wind_3AM']) # (mph)
+            wind_3PM=fieldSetting.ms_To_mph(load2['wind_3PM']) # (mph)
 
-        eachDayIrrigation = fieldSetting.baseVolumeOfIrrigation*tempCoefficient*rainCoefficient*uviCoefficient*windCoeffienct*humidCoeffienct
-        totalIrrigationVolume += eachDayIrrigation
-    return totalIrrigationVolume/fieldSetting.irrigationRunCount
+            self.weather_info_array=np.vstack((self.weather_info_array,np.array([
+                maxTemp,
+                minTemp,
+                min_humid,
+                solarGrad,
+                rain,
+                wind_3AM,
+                wind_3PM
+            ]).reshape(-1,7)))
+        return self.weather_info_array[1:]
 
-print(irrigationPrediction5Days())
+np.set_printoptions(precision=5,suppress=True)
+           
+Data = dataGenerate.collect_AND_structure_Data()
+
+X,y=Data[:,1:],Data[:,0].reshape(-1,1)
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=19)
+model=LinearRegression(fit_intercept=False).fit(X_train,y_train)
+
+final_data_weather=FinalWeatherData().finalizeData()
+df = pd.DataFrame(data=np.vstack((model.coef_.reshape(1,-1),final_data_weather)),
+                index=['Cofficient','Weather_day1','Weather_day2','Weather_day3','Weather_day4'],
+                columns=['maxTemp','minTemp','min_humid','solarGrad','rain','wind_3AM','wind_3PM'])
+
+print(df)
+print('Irrigation Volume for coming days')
+print(model.predict(final_data_weather).reshape(1,-1))
