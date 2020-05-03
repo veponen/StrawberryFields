@@ -1,6 +1,3 @@
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-import dataGenerate
 import json as js
 import urllib.request
 import datetime as dt
@@ -91,17 +88,12 @@ class FinalWeatherData(WeatherCollectedData):
 
 np.set_printoptions(precision=5,suppress=True)
            
-Data = dataGenerate.collect_AND_structure_Data()
-
-X,y=Data[:,1:],Data[:,0].reshape(-1,1)
-X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2,random_state=19)
-model=LinearRegression(fit_intercept=False).fit(X_train,y_train)
-
+coef=fieldSetting.coef
 final_data_weather=FinalWeatherData().finalizeData()
-df = pd.DataFrame(data=np.vstack((model.coef_.reshape(1,-1),final_data_weather)),
+df = pd.DataFrame(data=np.vstack((coef,final_data_weather)),
                 index=['Cofficient','Weather_day1','Weather_day2','Weather_day3','Weather_day4'],
                 columns=['maxTemp','minTemp','min_humid','solarGrad','rain','wind_3AM','wind_3PM'])
 
 print(df)
-print('Irrigation Volume for coming days')
-print(model.predict(final_data_weather).reshape(1,-1))
+print('Total reference ET for coming days:',end='')
+print(sum(np.dot(final_data_weather,coef.reshape(7,-1))))
