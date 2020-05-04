@@ -63,7 +63,9 @@ class WeatherCollectedData:
 class FinalWeatherData(WeatherCollectedData):   
     def finalizeData(self):
         self.weather_info_array=np.array([0,0,0,0,0,0,0]).reshape(-1,7)
-        for load1, load2 in zip(self.load_and_read_from_API_1(),self.load_and_read_from_API_2()):
+        temp_rain_uv=self.load_and_read_from_API_1()
+        humid_wind=self.load_and_read_from_API_2()
+        for load1, load2 in zip(temp_rain_uv,humid_wind):
             sunset_time=fieldSetting.unix_to_UTC_time(load1['sunset'])
             sunrise_time=fieldSetting.unix_to_UTC_time(load1['sunrise'])
             amount_time_light_in_seccond=(sunset_time-sunrise_time).seconds # (sec)
