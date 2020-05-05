@@ -46,10 +46,35 @@ class WeatherCollectedData:
                     'humidity':each_3_hour['main']['humidity'],
                     'wind_speed':each_3_hour['wind']['speed']
                     }
+            ''' result of date_humid_wind:
+            {
+            '2020-05-05': {
+                '09:00:00': {'humidity': 54, 'wind_speed': 1.42}, 
+                '12:00:00': {'humidity': 54, 'wind_speed': 0.99}, 
+                '15:00:00': {'humidity': 55, 'wind_speed': 1.14}, 
+                '18:00:00': {'humidity': 65, 'wind_speed': 0.69}, 
+                '21:00:00': {'humidity': 70, 'wind_speed': 2.92}
+                }, 
+            '2020-05-06': {
+                '00:00:00': {'humidity': 78, 'wind_speed': 2.84}, 
+                '03:00:00': {'humidity': 75, 'wind_speed': 3.64}, 
+                '06:00:00': {'humidity': 64, 'wind_speed': 4.58}, 
+                '09:00:00': {'humidity': 57, 'wind_speed': 4.65}, 
+                '12:00:00': {'humidity': 60, 'wind_speed': 4.53}, 
+                '15:00:00': {'humidity': 61, 'wind_speed': 4.04}, 
+                '18:00:00': {'humidity': 71, 'wind_speed': 2.91}, 
+                '21:00:00': {'humidity': 81, 'wind_speed': 2.73}
+                },
+                ...
+            '2020-05-10': {
+                ...,
+                '06:00:00': {'humidity': 84, 'wind_speed': 1.83}
+                }
+            }'''
         self.humid_wind_info=[]
         for each_date in self.date_humid_wind:
             date_info=self.date_humid_wind[each_date]
-            if len(date_info) ==8 :
+            if len(date_info) == 8 :
                 wind_3AM=date_info['03:00:00']['wind_speed']
                 wind_3PM=date_info['15:00:00']['wind_speed']
                 min_humid = min([date_info[each3hour]['humidity'] for each3hour in date_info])
@@ -96,6 +121,7 @@ df = pd.DataFrame(data=np.vstack((coef,final_data_weather)),
                 index=['Cofficient','Weather_day1','Weather_day2','Weather_day3','Weather_day4'],
                 columns=['maxTemp','minTemp','min_humid','solarGrad','rain','wind_3AM','wind_3PM'])
 
+next_following_irrigation=np.dot(final_data_weather,coef.reshape(7,-1))
+total_irrigation=sum(next_following_irrigation)
 print(df)
-print('Total reference ET for coming days:',end='')
-print(sum(np.dot(final_data_weather,coef.reshape(7,-1))))
+print('Total reference ET for coming days:',total_irrigation)

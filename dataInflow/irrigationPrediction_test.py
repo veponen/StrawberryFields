@@ -23,11 +23,13 @@ class TestIrrigationPrediction(unittest.TestCase):
         self.assertEqual(len(self.final.jsfile_2['list']),40)
         self.assertTrue([(each_day['min_humid'] <=100 and each_day['min_humid'] >=0) for each_day in self.final.humid_wind_info])
         print('test 3 passed')
-    def dumbTest(self):
+
+    def testwithMock(self):
         self.final.finalizeData()
-        dim_array = self.final.weather_info_array.shape
-        self.assertEqual(dim_array[1],7)
-        self.assertIn(dim_array[0],(4,5))
+        weather_info_array=self.final.weather_info_array
+        dim_array = weather_info_array.shape
+        self.assertEqual(dim_array[1],7) # assert number of collumns must be equal to 7
+        self.assertTrue(all([i== 0 for i in weather_info_array[0,:]])) # assert number of rows must be equal to 4 or 5
         moc_1=Mock(return_value=(4,7))
         moc_1.shape=(4,7)
         self.assertEqual(self.final.finalizeData().shape,moc_1())
