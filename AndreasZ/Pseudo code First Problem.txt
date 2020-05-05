@@ -1,0 +1,20 @@
+First Version
+
+Make a loop to read all the weights from crops file.
+Have to add a " counter " variable to start counting all the weight of the crops ( Has to be inside a loop ).
+customer = Ask how many kilos of stawberrys they need
+Check if we can provide that amount to the customer. ( Display the result )
+available = counter - customer
+
+Second Version 
+
+LOOP read all weights from crops file
+  totalweight = crops file line weight + totalweight
+customer = ask how many kilos?
+if totalweight < customer
+   cant provide
+available = counter - customer
+
+
+
+
