@@ -1,7 +1,12 @@
 from wwo_hist import retrieve_hist_data
 import os
 import urllib.request
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
 city = input ("Put youre city: ")
+#date1 = date.today()
+#date2 = date.today() + timedelta(5)
 
 def actualWeather():
     os.chdir(".")
@@ -22,9 +27,8 @@ def currentThermalSum():
     for row in csv_f:
         if aux>0:
             TempSum = TempSum + int(row[1])
-            print (row[1])
         aux=aux+1
-    return print ("Current Thermal Sum: " + str(TempSum))
+    return TempSum
 
 
 def SumRainPerDay():
@@ -44,18 +48,34 @@ def SumRainPerDay():
 def predictedPestAppearances(): 
     if SumRainPerDay() < 50:
         print("Low posibility of having pests.")
+        return 1
     elif SumRainPerDay() >=50 and SumRainPerDay() <=80:
         print("Medium posibility of having pests.")
+        return 2
     elif SumRainPerDay() >80:
         print("High posibility of having pests.")
+        return 3
 
-#def pastRainPerDay():
-#   print("Star date:  " + str(start_date)
+
+def predictDiseaseAppearance(): #currentThermalSum,SumRainPerDay
+    risk = predictedPestAppearances()
+    TermalSum = currentThermalSum()
+    if TermalSum < 300 and  risk == 1:
+        print ("Low posibility to have Disease.")
+    elif TermalSum >=300 and risk ==2:
+        print ("Medium posibility to have Disease.")
+    elif TermalSum >=300 and risk ==3:
+        print("High posibility to have Disease")
+
+
+
+
+
 
 
 
 actualWeather()
-currentThermalSum()
-print ("Sum rain per day: " + str(SumRainPerDay()))
+print ("Sum rain per day (in 10 days): " + str(SumRainPerDay()))
+print ("Current Thermal Sum (in 10 days): " + str(currentThermalSum()))
 predictedPestAppearances()
-#pastRainPerDay()
+predictDiseaseAppearance()
