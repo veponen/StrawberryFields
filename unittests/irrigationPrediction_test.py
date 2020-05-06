@@ -1,6 +1,10 @@
 from mock import Mock
 import unittest
+
+import sys  
+sys.path.insert(1,'d:\\DownloadC\\Software Methodology\\StrawberryFields\\farmingOperations')  
 import irrigationPrediction
+
 class TestIrrigationPrediction(unittest.TestCase):
     final=irrigationPrediction.FinalWeatherData()
 
