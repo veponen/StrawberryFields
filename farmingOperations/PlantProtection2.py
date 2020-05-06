@@ -1,4 +1,5 @@
 from wwo_hist import retrieve_hist_data
+from csv import writer
 import os
 import urllib.request
 from datetime import date
@@ -7,6 +8,7 @@ from datetime import timedelta
 city = input ("Put youre city: ")
 #date1 = date.today()
 #date2 = date.today() + timedelta(5)
+humidity = 55
 
 def actualWeather():
     os.chdir(".")
@@ -47,13 +49,10 @@ def SumRainPerDay():
 
 def predictedPestAppearances(): 
     if SumRainPerDay() < 50:
-        print("Low posibility of having pests.")
         return 1
     elif SumRainPerDay() >=50 and SumRainPerDay() <=80:
-        print("Medium posibility of having pests.")
         return 2
     elif SumRainPerDay() >80:
-        print("High posibility of having pests.")
         return 3
 
 
@@ -66,16 +65,42 @@ def predictDiseaseAppearance(): #currentThermalSum,SumRainPerDay
         print ("Medium posibility to have Disease.")
     elif TermalSum >=300 and risk ==3:
         print("High posibility to have Disease")
+    elif TermalSum <1000 and risk >= 2: 
+        print ("Medium to High posibility to have Disease.")
+
+def listOfProtectionDaysPossible():
+    import csv
+    x = city
+    f = open("%s.csv" % x)
+    csv_f = csv.reader(f)
+    humidity = 77
+    CloudCover = 50
+    aux=0
+    for row in csv_f:
+        if aux>0:
+            if  int(row[18]) <= humidity and int(row[17]) <= CloudCover:
+                print("List of protection days possible: " + row[0])
+        aux=aux+1
 
 
 
-
-
-
-
+def newPredictions():  #write in csv file newest predictions
+    #x = city
+    #with open("%s.csv" % x, 'a+', newline='') as write_obj:
+    #    csv_writer = writer(write_obj)
+    #   csv_writer.writerow(listOfProtectionDaysPossible())
+#-------------------------------------------------------------------------------------------------------
 
 actualWeather()
 print ("Sum rain per day (in 10 days): " + str(SumRainPerDay()))
 print ("Current Thermal Sum (in 10 days): " + str(currentThermalSum()))
-predictedPestAppearances()
+predict = predictedPestAppearances()
+if predict ==1 : 
+    print("Low posibility of having pests.")
+elif predict == 2:
+    print("Medium posibility of having pests.")
+elif predict == 3: 
+    print("High posibility of having pests.")
 predictDiseaseAppearance()
+listOfProtectionDaysPossible()
+newPredictions()
