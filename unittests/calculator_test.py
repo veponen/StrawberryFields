@@ -37,9 +37,11 @@ class TestCalculator(unittest.TestCase):
         answer1 = self.calc.sum(2, 4)
         self.calc.sum.assert_called_with(2,4)
         self.calc.sum.assert_called_once()
+        print(answer1)
         #self.calc.assert_
         #self.assertEqual(answer1, 6)
 
 
 if __name__ == '__main__':
     unittest.main()
+

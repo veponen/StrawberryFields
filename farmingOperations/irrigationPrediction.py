@@ -4,16 +4,23 @@ import datetime as dt
 import fieldSetting
 import numpy as np
 import pandas as pd
+import datetime
 
 class WeatherCollectedData:
     url1='https://api.openweathermap.org/data/2.5/onecall?lat=64.286670&lon=27.622125&units=metric&appid=e25afeccd6e22a2e996bed2809e43452'
     url2='https://api.openweathermap.org/data/2.5/forecast?lat=64.286670&lon=27.622125&units=metric&appid=e25afeccd6e22a2e996bed2809e43452'
     def load_and_read_from_API_1(self):
+        '''
+        from url1, function load_and_read_from_API_1 will get 
+        sunset, sunrise, max/min temperature, rain and uv index for next 5 days
+        and return a list of dictionaries of those values
+        '''
         resp_1=urllib.request.urlopen(self.url1)
         self.jsfile_1=js.load(resp_1)
-
+        
+        start_num=0 if datetime.datetime.now().hour in (0,1,2) else 1 
         self.temp_rain_uv_info=[]
-        for each_date in self.jsfile_1['daily'][1:5]:
+        for each_date in self.jsfile_1['daily'][start_num:5]:
             sunset=each_date['sunset']
             sunrise=each_date['sunrise']
             temp_max=each_date['temp']['max']
@@ -29,7 +36,12 @@ class WeatherCollectedData:
                 'rain_info':rain_info,
                 'uvi_index':uvi_index})
         return self.temp_rain_uv_info
+
     def load_and_read_from_API_2(self):
+        '''
+        from url2, function load_and_read_from_API_2 will get minimum humidity, wind at 3AM/3PM for next 5 days
+        and return a list of dictionaries of those values
+        '''
         resp_2=urllib.request.urlopen(self.url2)
         self.jsfile_2=js.load(resp_2)
         self.date_humid_wind={}
@@ -49,7 +61,7 @@ class WeatherCollectedData:
         self.humid_wind_info=[]
         for each_date in self.date_humid_wind:
             date_info=self.date_humid_wind[each_date]
-            if len(date_info) ==8 :
+            if len(date_info) == 8 :
                 wind_3AM=date_info['03:00:00']['wind_speed']
                 wind_3PM=date_info['15:00:00']['wind_speed']
                 min_humid = min([date_info[each3hour]['humidity'] for each3hour in date_info])
@@ -60,10 +72,24 @@ class WeatherCollectedData:
                 })
         return self.humid_wind_info
 
-class FinalWeatherData(WeatherCollectedData):   
-    def finalizeData(self):
+class FinalWeatherData(WeatherCollectedData):
+    '''
+    This class will use data from load_and_read_from_API_1 and load_and_read_from_API_2
+    to RETURN the final array for data weather next 5 days
+    (maxTemp, minTemp, min_humid, solarGrad, rain, wind_3AM, wind_3PM)
+    '''
+    def finalizeData(self): 
+        '''
+        in from url2 parameter, you will get data for 5 days starting from the time you access that link
+        for example, if you run the irrigationPrediction at 12:00 date 05.05.2020, you will get data from 12:00 5.5.2020 to 9:00 10.5.2000
+        which mean you can't get wind_speed at 3AM on day 05.05 and wind_speed at 3PM on day 10.05
+        so only date 06.05, 07.05, 08.05, 09.05 have full data (which you can have minimum humidity and wind at 3AM and wind at 3PM)
+        ~~~ Solution: the way to get 5 day is to run the program from 0:00AM to 3:00AM ~~~
+        '''
         self.weather_info_array=np.array([0,0,0,0,0,0,0]).reshape(-1,7)
-        for load1, load2 in zip(self.load_and_read_from_API_1(),self.load_and_read_from_API_2()):
+        temp_rain_uv=self.load_and_read_from_API_1()
+        humid_wind=self.load_and_read_from_API_2()
+        for load1, load2 in zip(temp_rain_uv,humid_wind):
             sunset_time=fieldSetting.unix_to_UTC_time(load1['sunset'])
             sunrise_time=fieldSetting.unix_to_UTC_time(load1['sunrise'])
             amount_time_light_in_seccond=(sunset_time-sunrise_time).seconds # (sec)
@@ -85,15 +111,28 @@ class FinalWeatherData(WeatherCollectedData):
                 wind_3PM
             ]).reshape(-1,7)))
         return self.weather_info_array[1:]
-
+'''
+45.878000  34.682000  56.000000   4.400830  0.009843  7.650322  10.267538
+45.050000  32.864000  58.000000   4.650565  0.000000  7.113457  10.960988
+43.304000  33.422000  58.000000   4.680186  0.000000  4.071224   8.388511
+46.202000  36.500000  67.000000   4.805775  0.413779  7.448998   4.854152
+'''
 np.set_printoptions(precision=5,suppress=True)
-           
 coef=fieldSetting.coef
 final_data_weather=FinalWeatherData().finalizeData()
-df = pd.DataFrame(data=np.vstack((coef,final_data_weather)),
-                index=['Cofficient','Weather_day1','Weather_day2','Weather_day3','Weather_day4'],
-                columns=['maxTemp','minTemp','min_humid','solarGrad','rain','wind_3AM','wind_3PM'])
 
+row_name=['Coefficient']
+for i in range(1,final_data_weather.shape[0]+1): 
+    string = 'Weather_day_{}'
+    row_name.append(string.format(i))
+# the last element of row_name parameter can be 'Weather_day_4' or 'Weather_day_5', depends on the time you run this program
+# read more detail inside finalizeData() FUNCTION
+
+df = pd.DataFrame(data=np.vstack((coef,final_data_weather)),
+                index=row_name, # row name
+                columns=['maxTemp','minTemp','min_humid','solarGrad','rain','wind_3AM','wind_3PM']) # column name
+# df parameter simply is just created to read the unittest easier
+next_following_irrigation=np.dot(final_data_weather,coef.reshape(7,-1))
+total_irrigation=sum(next_following_irrigation)
 print(df)
-print('Total reference ET for coming days:',end='')
-print(sum(np.dot(final_data_weather,coef.reshape(7,-1))))
+print('Total reference ET for coming days:',total_irrigation)
