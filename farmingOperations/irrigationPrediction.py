@@ -10,6 +10,11 @@ class WeatherCollectedData:
     url1='https://api.openweathermap.org/data/2.5/onecall?lat=64.286670&lon=27.622125&units=metric&appid=e25afeccd6e22a2e996bed2809e43452'
     url2='https://api.openweathermap.org/data/2.5/forecast?lat=64.286670&lon=27.622125&units=metric&appid=e25afeccd6e22a2e996bed2809e43452'
     def load_and_read_from_API_1(self):
+        '''
+        from url1, function load_and_read_from_API_1 will get 
+        sunset, sunrise, max/min temperature, rain and uv index for next 5 days
+        and return a list of dictionaries of those values
+        '''
         resp_1=urllib.request.urlopen(self.url1)
         self.jsfile_1=js.load(resp_1)
         
@@ -31,7 +36,12 @@ class WeatherCollectedData:
                 'rain_info':rain_info,
                 'uvi_index':uvi_index})
         return self.temp_rain_uv_info
+
     def load_and_read_from_API_2(self):
+        '''
+        from url2, function load_and_read_from_API_2 will get minimum humidity, wind at 3AM/3PM for next 5 days
+        and return a list of dictionaries of those values
+        '''
         resp_2=urllib.request.urlopen(self.url2)
         self.jsfile_2=js.load(resp_2)
         self.date_humid_wind={}
@@ -62,14 +72,19 @@ class WeatherCollectedData:
                 })
         return self.humid_wind_info
 
-class FinalWeatherData(WeatherCollectedData):   
+class FinalWeatherData(WeatherCollectedData):
+    '''
+    This class will use data from load_and_read_from_API_1 and load_and_read_from_API_2
+    to RETURN the final array for data weather next 5 days
+    (maxTemp, minTemp, min_humid, solarGrad, rain, wind_3AM, wind_3PM)
+    '''
     def finalizeData(self): 
         '''
-    in from url2 parameter, you will get data for 5 days starting from the time you access that link
-    for example, if you run the irrigationPrediction at 12:00 date 05.05.2020, you will get data from 12:00 5.5.2020 to 9:00 10.5.2000
-    which mean you can't get wind_speed at 3AM on day 05.05 and wind_speed at 3PM on day 10.05
-    so only date 06.05, 07.05, 08.05, 09.05 have full data (which you can have minimum humidity and wind at 3AM and wind at 3PM)
-    ~~~ Solution: the way to get 5 day is to run the program from 0:00AM to 3:00AM ~~~
+        in from url2 parameter, you will get data for 5 days starting from the time you access that link
+        for example, if you run the irrigationPrediction at 12:00 date 05.05.2020, you will get data from 12:00 5.5.2020 to 9:00 10.5.2000
+        which mean you can't get wind_speed at 3AM on day 05.05 and wind_speed at 3PM on day 10.05
+        so only date 06.05, 07.05, 08.05, 09.05 have full data (which you can have minimum humidity and wind at 3AM and wind at 3PM)
+        ~~~ Solution: the way to get 5 day is to run the program from 0:00AM to 3:00AM ~~~
         '''
         self.weather_info_array=np.array([0,0,0,0,0,0,0]).reshape(-1,7)
         temp_rain_uv=self.load_and_read_from_API_1()
@@ -105,15 +120,18 @@ class FinalWeatherData(WeatherCollectedData):
 np.set_printoptions(precision=5,suppress=True)
 coef=fieldSetting.coef
 final_data_weather=FinalWeatherData().finalizeData()
+
 row_name=['Coefficient']
-for i in range(1,final_data_weather.shape[0]+1):
+for i in range(1,final_data_weather.shape[0]+1): 
     string = 'Weather_day_{}'
     row_name.append(string.format(i))
+# the last element of row_name parameter can be 'Weather_day_4' or 'Weather_day_5', depends on the time you run this program
+# read more detail inside finalizeData() FUNCTION
 
 df = pd.DataFrame(data=np.vstack((coef,final_data_weather)),
                 index=row_name, # row name
                 columns=['maxTemp','minTemp','min_humid','solarGrad','rain','wind_3AM','wind_3PM']) # column name
-
+# df parameter simply is just created to read the unittest easier
 next_following_irrigation=np.dot(final_data_weather,coef.reshape(7,-1))
 total_irrigation=sum(next_following_irrigation)
 print(df)
