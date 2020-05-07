@@ -1,0 +1,24 @@
+import sqlite3
+import pandas as pd
+create the connection with the database file
+
+read database file to dataframe
+convert 'Date' column in data to datetime type
+examine the data set
+ 
+create the index for the data set where the index column created needs to be compliant with the date
+examine the data set
+
+write a fuction has 3 parameters which are 'current date, future date, amount':
+    use if condition to inspect wheather current date is less than the future date:
+        caculate the total amount the farm have
+            use if condition to check wheather total amount is bigger than amount of customer want:
+                use variable to print the accept offer
+            use else if total amount is less than the amount customer want:
+                use variable to print reject offer
+    use else if the current date is biger than the future date:
+        use variable to print reject offer
+    return variable 
+
+use call function
+    

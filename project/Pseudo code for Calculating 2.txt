@@ -1,0 +1,38 @@
+import sqlite3
+import pandas as pd
+create the connection with the database file
+
+read database file to dataframe
+convert 'Date' column in data to datetime type
+examine the data set
+ 
+create the index for the data set where the index column created needs to be compliant with the date
+examine the data set
+
+write a fuction has 2 parameters which are 'future date, amount':
+    if future date is in the range date of 1 and 10:
+        calculate the total amount we have
+        use if condition to check wheather total amount is bigger than amount of customer want:
+            use variable to print the accept offer
+        use else if total amount is less than the amount customer want:
+            use variable to print reject offer
+
+    if future date is in the range date of 11 and 19:
+        calculate the total amount we have
+        use if condition to check wheather total amount is bigger than amount of customer want:
+            use variable to print the accept offer
+        use else if total amount is less than the amount customer want:
+            use variable to print reject offer
+
+     if future date is in the range date of 20 and 30:
+        calculate the total amount we have
+        use if condition to check wheather total amount is bigger than amount of customer want:
+            use variable to print the accept offer
+        use else if total amount is less than the amount customer want:
+            use variable to print reject offer
+     return variable 
+
+use call function 
+
+
+
