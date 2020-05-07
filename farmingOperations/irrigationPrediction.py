@@ -13,7 +13,7 @@ class WeatherCollectedData:
         resp_1=urllib.request.urlopen(self.url1)
         self.jsfile_1=js.load(resp_1)
         
-        start_num=0 if datetime.datetime.now().hour in (0,1,2) else 1
+        start_num=0 if datetime.datetime.now().hour in (0,1,2) else 1 
         self.temp_rain_uv_info=[]
         for each_date in self.jsfile_1['daily'][start_num:5]:
             sunset=each_date['sunset']
@@ -48,31 +48,6 @@ class WeatherCollectedData:
                     'humidity':each_3_hour['main']['humidity'],
                     'wind_speed':each_3_hour['wind']['speed']
                     }
-            ''' result of date_humid_wind:
-            {
-            '2020-05-05': {
-                '09:00:00': {'humidity': 54, 'wind_speed': 1.42}, 
-                '12:00:00': {'humidity': 54, 'wind_speed': 0.99}, 
-                '15:00:00': {'humidity': 55, 'wind_speed': 1.14}, 
-                '18:00:00': {'humidity': 65, 'wind_speed': 0.69}, 
-                '21:00:00': {'humidity': 70, 'wind_speed': 2.92}
-                }, 
-            '2020-05-06': {
-                '00:00:00': {'humidity': 78, 'wind_speed': 2.84}, 
-                '03:00:00': {'humidity': 75, 'wind_speed': 3.64}, 
-                '06:00:00': {'humidity': 64, 'wind_speed': 4.58}, 
-                '09:00:00': {'humidity': 57, 'wind_speed': 4.65}, 
-                '12:00:00': {'humidity': 60, 'wind_speed': 4.53}, 
-                '15:00:00': {'humidity': 61, 'wind_speed': 4.04}, 
-                '18:00:00': {'humidity': 71, 'wind_speed': 2.91}, 
-                '21:00:00': {'humidity': 81, 'wind_speed': 2.73}
-                },
-                ...
-            '2020-05-10': {
-                ...,
-                '06:00:00': {'humidity': 84, 'wind_speed': 1.83}
-                }
-            }'''
         self.humid_wind_info=[]
         for each_date in self.date_humid_wind:
             date_info=self.date_humid_wind[each_date]
@@ -121,9 +96,13 @@ class FinalWeatherData(WeatherCollectedData):
                 wind_3PM
             ]).reshape(-1,7)))
         return self.weather_info_array[1:]
-
+'''
+45.878000  34.682000  56.000000   4.400830  0.009843  7.650322  10.267538
+45.050000  32.864000  58.000000   4.650565  0.000000  7.113457  10.960988
+43.304000  33.422000  58.000000   4.680186  0.000000  4.071224   8.388511
+46.202000  36.500000  67.000000   4.805775  0.413779  7.448998   4.854152
+'''
 np.set_printoptions(precision=5,suppress=True)
-
 coef=fieldSetting.coef
 final_data_weather=FinalWeatherData().finalizeData()
 row_name=['Coefficient']
@@ -138,12 +117,4 @@ df = pd.DataFrame(data=np.vstack((coef,final_data_weather)),
 next_following_irrigation=np.dot(final_data_weather,coef.reshape(7,-1))
 total_irrigation=sum(next_following_irrigation)
 print(df)
-''' result of df
-                maxTemp    minTemp  min_humid  solarGrad      rain  wind_3AM   wind_3PM
-Cofficient     0.001025   0.001413  -0.002191   0.003013 -0.038329  0.003955   0.006548
-Weather_day1  45.878000  34.682000  56.000000   4.400830  0.009843  7.650322  10.267538
-Weather_day2  45.050000  32.864000  58.000000   4.650565  0.000000  7.113457  10.960988
-Weather_day3  43.304000  33.422000  58.000000   4.680186  0.000000  4.071224   8.388511
-Weather_day4  46.202000  36.500000  67.000000   4.805775  0.413779  7.448998   4.854152
-'''
 print('Total reference ET for coming days:',total_irrigation)
