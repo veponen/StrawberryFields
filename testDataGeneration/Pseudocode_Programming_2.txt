@@ -1,0 +1,15 @@
+import all important modules
+connection = Make a connection to the database we need
+c = create a cursor
+function(SeasonStart,StartDay,StartWeight,MaximumWeight):
+	Row = 1
+	Logic = False						( Used to verify all the rest values will be written once inserted to if)
+	Daycount = StartDay - SeasonStart
+	StoreDay= StartDay
+	while StartDay <= Lastday
+		FinalWeight = ((sin(2 * pi * (15/30 - 1/4)) + 1)/ 2)
+		if StartWeight <= finalweight or logic = True   
+			Logic = True                            
+			Insert Values(Row, FinalWeight, StoreDay) to Database
+		StoreDay += 1
+		Daycount += 1
